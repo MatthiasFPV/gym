@@ -240,20 +240,7 @@ async function load(){
     if(r&&r.value) S=JSON.parse(r.value);
   }catch(e){}
   if(!S.tables||!S.tables.length){
-    var base=now()-10*24*60*60*1000;
-    S={active:0,tables:[
-      {name:'Bankdrücken',cols:[{name:'01.01',sep:false},{name:'08.01',sep:false},{name:'15.01',sep:false},{name:'22.01',sep:false}],
-        rows:[
-          {label:'Set 1 (kg)',sep:false,cells:[{v:'60',ts:base,color:null},{v:'65',ts:base+7*864e5,color:null},{v:'65',ts:base+14*864e5,color:null},{v:'70',ts:now()-2*864e5,color:'#1D9E75'}]},
-          {label:'Set 2 (kg)',sep:false,cells:[{v:'55',ts:base,color:null},{v:'60',ts:base+7*864e5,color:null},{v:'62',ts:base+14*864e5,color:null},{v:'65',ts:now()-2*864e5,color:null}]},
-          {label:'Wdh.',sep:false,cells:[{v:'10',ts:base,color:null},{v:'10',ts:base+7*864e5,color:null},{v:'12',ts:base+14*864e5,color:null},{v:'10',ts:now()-2*864e5,color:null}]}
-        ]},
-      {name:'Kniebeugen',cols:[{name:'01.01',sep:false},{name:'08.01',sep:false},{name:'15.01',sep:false}],
-        rows:[
-          {label:'Set 1 (kg)',sep:false,cells:[{v:'80',ts:base,color:null},{v:'85',ts:base+7*864e5,color:null},{v:'90',ts:now()-864e5,color:'#1D9E75'}]},
-          {label:'Set 2 (kg)',sep:false,cells:[{v:'75',ts:base,color:null},{v:'80',ts:base+7*864e5,color:null},{v:'85',ts:now()-864e5,color:null}]}
-        ]}
-    ]};
+    S={active:0,tables:[]};
   }
   purgeStale();render();
 }
@@ -582,7 +569,14 @@ function renderSidebar(){
   S.tables.forEach(function(t,i){
     var li=document.createElement('li');li.className='table-item'+(i===S.active?' active':'');
     var nm=document.createElement('span');nm.className='t-name';nm.textContent=t.name;
-    var del=document.createElement('button');del.className='t-del';del.textContent='✕';
+    var ren=document.createElement('button');ren.className='t-del';ren.textContent='✏';ren.title='Umbenennen';
+    ren.onclick=function(e){
+      e.stopPropagation();
+      openModal('Tabelle umbenennen','Neuer Name',function(name){
+        snapshot();t.name=name;save();render();
+      });
+    };
+    var del=document.createElement('button');del.className='t-del';del.textContent='✕';del.title='Löschen';
     del.onclick=function(e){
       e.stopPropagation();
       confirmDel('Tabelle "'+t.name+'" löschen?','Diese Aktion kann mit ↩ Rückgängig widerrufen werden.',function(){
@@ -592,7 +586,7 @@ function renderSidebar(){
         openHistoryRow=null;save();render();
       });
     };
-    li.appendChild(nm);li.appendChild(del);
+    li.appendChild(nm);li.appendChild(ren);li.appendChild(del);
     li.onclick=function(){S.active=i;openHistoryRow=null;render();};
     list.appendChild(li);
   });
